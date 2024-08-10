@@ -45,7 +45,7 @@ This will:
 ```bash
 docker run -it orders-analysis
 ```
-This opens the container shell and allows you to run queries. 
+This opens the container terminal and allows you to run sell commands. 
 Aliases has been created for tasks like running tests and opening the `orders.db` in DuckDB CLI
 - `runtests`: to run tests
 - `rundb` to open orders database in DuckDB CLi
