@@ -110,6 +110,21 @@ docker-compose up --build
 
 Modify the database.py and/or processing.py scripts to change the data ingestion/processing processes according to your requirements. Also, update the main.py script and the test scripts as needed.
 
+#### DuckDB installation failed
+
+If the build fails due to the duckdb installation, download the duckdb binary file on your local machine and move it into the 
+project directory. <br>
+Copy it into the container and rebuild your image. Do this by editing Dockerfile with the code below.
+```Dockerfile
+  # Download and install DuckDB CLI
+  #RUN apt-get update && apt-get install -y wget unzip
+  #RUN wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip
+  #RUN unzip duckdb_cli-linux-amd64.zip
+  #RUN rm duckdb_cli-linux-amd64.zip
+  COPY ./duckdb ./duckdb
+  RUN chmod +x ./duckdb
+```
+
 #### Troubleshooting:
 
 If you encounter issues, ensure that all dependencies are correctly installed and that the CSV files are properly placed in the data/ directory. Common issues include file not found errors or Docker build problems.
