@@ -20,8 +20,7 @@ def main():
         
         # Run analysis from processing.py
         logger.info("Starting data analysis...")
-        db_path = os.path.join(WORKING_DIR, 'orders.db')
-        analyze_and_load(db_path, 'orders')
+        analyze_and_load('orders')
         logger.info("Data analysis completed successfully.")
         
     except Exception as e:
