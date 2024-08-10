@@ -22,6 +22,5 @@ __pycache__/
 *.log
 *.tmp
 
-# Ignore other OS-specific files
-.DS_Store  # macOS
-Thumbs.db  # Windows
+# Ignore duckdb
+duckdb

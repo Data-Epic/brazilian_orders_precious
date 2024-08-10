@@ -29,9 +29,9 @@ cd customer_orders_analysis
 - Get the list dataset and information from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), unzip the downloaded zip file
 - Place all CSV files in the `data/` directory
 
-#### 3. Build and run the Docker container:
+#### 3. Build the Docker image:
 ```bash
-docker-compose up --build
+docker-compose build
 ```
 
 This will:
@@ -39,15 +39,20 @@ This will:
 - Install necessary dependencies.
 - Download and unzip the DuckDB CLI.
 - Run the database and processing scripts.
-- Run tests on the scripts
-- Open the DuckDB CLI.
+- Create the `orders-analysis` image.
 
-#### 4. In a new terminal, start the container:
+#### 4. Run the container:
 ```bash
-docker start -ai orders-analysis-container
+docker run -it orders-analysis
 ```
+This opens the container shell and allows you to run queries. 
+Aliases has been created for tasks like running tests and opening the `orders.db` in DuckDB CLI
+- `runtests`: to run tests
+- `rundb` to open orders database in DuckDB CLi
+- `runpipeline` to run the database and processing scripts
 
-#### 6. Query the loaded tables in DuckDB:
+
+#### 5. Query the loaded tables in DuckDB:
 ```sql
 SELECT * FROM orders LIMIT 5;
 SELECT * FROM customers_analysis  LIMIT 5;
