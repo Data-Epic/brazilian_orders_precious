@@ -187,7 +187,7 @@ def data_pipeline(WORKING_DIR):
     logging.info("Starting data pipeline...")
     try:
         # Set directory path
-        db_path = os.path.join(WORKING_DIR, 'orders.db')
+        db_path = 'orders.db'
 
         # Load data
         data_frames = load_csv_data(WORKING_DIR)
