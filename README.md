@@ -51,6 +51,10 @@ Aliases has been created for tasks like running tests and opening the `orders.db
 - `rundb` to open orders database in DuckDB CLi
 - `runpipeline` to run the database and processing scripts
 
+**Example usage**
+```
+root@4608a104ade6:/orders_analysis# runtests
+```
 
 #### 5. Query the loaded tables in DuckDB:
 ```sql
