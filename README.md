@@ -60,7 +60,7 @@ root@4608a104ade6:/orders_analysis# runtests
 ```sql
 SELECT * FROM orders LIMIT 5;
 SELECT * FROM customers_analysis  LIMIT 5;
-SELECT * FROM sales_analysis LIMIT 5;
+SELECT * FROM sales_analysis;
 ```
 
 ## Project Info
