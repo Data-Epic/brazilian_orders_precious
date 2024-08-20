@@ -181,6 +181,42 @@ def analyze_and_load(table_name: str, engine):
 
     logging.info("Analysis and data loading completed.")
 
+# Simple filtering functions
+
+def get_orders_by_date(data, start_date, end_date):
+    """Get orders within a specific date range"""
+    logging.info(f"Getting orders between {start_date} and {end_date}")
+    filtered_orders_df = data.filter(pl.col('order_purchase_timestamp') >= start_date & pl.col('order_purchase_timestamp') <= end_date)
+    return filtered_orders_df
+
+def get_top_customers(data, n=10):
+    """Get top N customers by total spending"""
+    logging.info(f"Getting top {n} customers by total spending")
+    customers_df = data.group_by('customer_unique_id').agg([
+        pl.sum('price').round(2).alias('total_orders_value')
+        ]).sort('total_orders_value', descending=True).head(n)
+    return customers_df
+
+def get_orders_by_customer(data, customer_id):
+    """Get orders for a specific customer"""
+    logging.info(f"Getting orders for customer {customer_id}")
+    filtered_orders_df = data.filter(pl.col('customer_unique_id') == customer_id)
+    return filtered_orders_df
+
+def get_orders_by_seller(data, seller_id):
+    """Get orders for a specific seller"""
+    logging.info(f"Getting orders for seller {seller_id}")
+    filtered_orders_df = data.filter(pl.col('seller_id') == seller_id)
+    return filtered_orders_df
+
+def get_orders_by_product(data, product_id):
+    """Get orders for a specific product"""
+    logging.info(f"Getting orders for product {product_id}")
+    filtered_orders_df = data.filter(pl.col('product_id') == product_id)
+    return filtered_orders_df
+
+
+
 if __name__ == "__main__":
     # Perform analysis and load data
     engine = create_engine()
