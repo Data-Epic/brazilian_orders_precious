@@ -158,7 +158,7 @@ def process_data(data_frames: dict):
     ])
 
     logging.info("Orders DataFrame created.")
-    print(final_orders_df.describe())  # Log the description of the DataFrame
+    #print(final_orders_df.describe())  # Log the description of the DataFrame
 
     return final_orders_df
 

@@ -1,6 +1,7 @@
 import polars as pl
 import logging
 import sqlalchemy as sa
+from database import data_pipeline
 import os
 
 # Set up logging
@@ -9,11 +10,29 @@ logger = logging.getLogger(__name__)
 
 # Set database path to the parent directory
 db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'orders.db')
-# Initialize the engine
-engine = sa.create_engine(f'duckdb:///{db_path}')
+
+
+def create_engine():
+    """Create database conncetion. If the database doesn't exist, create it and populate it from database.py"""
+    #create and populate the database if it doesn't exist
+    if not os.path.exists(db_path):
+        logging.info("Database doesn't exist. Creating database....")
+
+        # Set working directory and database path
+        SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+        WORKING_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '../data'))
+
+        data_pipeline(WORKING_DIR)
+
+    engine = sa.create_engine(f'duckdb:///{db_path}')
+    return engine
+
+engine = create_engine()
 
 def load_data_from_db(table_name: str, engine) -> pl.DataFrame:
     """Load data from a DuckDB table into a Polars DataFrame."""
+    logging.info(f"Loading data from {table_name}...")
+
     try:
         # Reflect the orders table
         metadata = sa.MetaData()
