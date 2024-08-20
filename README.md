@@ -26,7 +26,9 @@ cd customer_orders_analysis
 ```
 
 #### 2. Download the dataset:
-- Get the list dataset and information from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), unzip the downloaded zip file
+- Get the list dataset and information from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+- Unzip the downloaded zip file
+- Create a `data/` folder in your working directory
 - Place all CSV files in the `data/` directory
 
 #### 3. Build the Docker image:
