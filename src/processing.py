@@ -27,20 +27,23 @@ def create_engine():
     engine = sa.create_engine(f'duckdb:///{db_path}')
     return engine
 
-engine = create_engine()
 
-def load_data_from_db(table_name: str, engine) -> pl.DataFrame:
+def load_data_from_db(table_name: str, engine, columns: list[str] = None) -> pl.DataFrame:
     """Load data from a DuckDB table into a Polars DataFrame."""
     logging.info(f"Loading data from {table_name}...")
 
     try:
         # Reflect the orders table
         metadata = sa.MetaData()
-        orders_table = sa.Table(table_name, metadata, autoload_with=engine)
+        table = sa.Table(table_name, metadata, autoload_with=engine)
+        
+        # If columns is not provided, select all columns
+        if columns is None:
+            columns = [col.name for col in table.columns]
         
         # Query the data using SQLAlchemy ORM and convert to Polars DataFrame
         with engine.connect() as connection:
-            result = connection.execute(orders_table.select()).fetchall()
+            result = connection.execute(table.select(columns)).fetchall()
             data = [dict(row._mapping) for row in result]
             df = pl.DataFrame(data)
 
@@ -151,25 +154,26 @@ def save_to_duckdb(data: pl.DataFrame, table_name: str, engine):
         logging.error(f"Failed to save DataFrame to {table_name}: {e}")
         raise
 
-def analyze_and_load(table_name: str, engine=engine):
+def analyze_and_load(table_name: str, engine):
     """Runs the full analytics pipeline on the orders database and save to duckdb."""
     logging.info("Starting analysis and loading data into DuckDB.")
     
     orders_df = load_data_from_db(table_name, engine)
     
-    customers_df = get_customer_spending(orders_df)
-    sellers_df = get_sales_per_seller(orders_df)
-    products_df = get_product_sales_analysis(orders_df)
-    sales_analysis_df = get_sales_analysis(orders_df)
+    dfs = {
+        'customers_analysis': get_customer_spending(orders_df),
+        'sellers_analysis': get_sales_per_seller(orders_df),
+        'products_analysis': get_product_sales_analysis(orders_df),
+        'sales_analysis': get_sales_analysis(orders_df)
+    }
 
-    save_to_duckdb(customers_df, 'customers_analysis', engine)
-    save_to_duckdb(sellers_df, 'sellers_analysis', engine)
-    save_to_duckdb(products_df, 'products_analysis', engine)
-    save_to_duckdb(sales_analysis_df, 'sales_analysis', engine)
-
+    for table, df in dfs.items():
+        save_to_duckdb(df, table, engine)
 
     logging.info("Analysis and data loading completed.")
 
 if __name__ == "__main__":
     # Perform analysis and load data
-    analyze_and_load('orders')
+    engine = create_engine()
+    analyze_and_load('orders', engine)
+

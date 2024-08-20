@@ -1,7 +1,7 @@
 import os
 import logging
-from database import data_pipeline
-from processing import analyze_and_load
+from database import data_pipeline, 
+from processing import analyze_and_load, create_engine
 
 def main():
     # Set up logging
@@ -20,7 +20,8 @@ def main():
         
         # Run analysis from processing.py
         logger.info("Starting data analysis...")
-        analyze_and_load('orders')
+        engine = create_engine()
+        analyze_and_load('orders', engine)
         logger.info("Data analysis completed successfully.")
         
     except Exception as e:
