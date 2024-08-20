@@ -4,3 +4,4 @@ sqlalchemy #for ORM
 duckdb-engine #for ORM
 pyarrow #for duckdb to polars
 pandas #for writing to database
+Flask==3.0.0

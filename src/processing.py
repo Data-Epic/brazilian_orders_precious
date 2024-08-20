@@ -2,6 +2,7 @@ import polars as pl
 import logging
 import sqlalchemy as sa
 from database import data_pipeline
+from datetime import datetime
 import os
 
 # Set up logging
@@ -184,9 +185,14 @@ def analyze_and_load(table_name: str, engine):
 # Simple filtering functions
 
 def get_orders_by_date(data, start_date, end_date):
-    """Get orders within a specific date range"""
+    """Get orders within a specific date range e.g 2017-08-10 - 2018-10-12"""
     logging.info(f"Getting orders between {start_date} and {end_date}")
-    filtered_orders_df = data.filter(pl.col('order_purchase_timestamp') >= start_date & pl.col('order_purchase_timestamp') <= end_date)
+    
+    # Convert strings to datetime objects
+    start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    
+    filtered_orders_df = data.filter((pl.col('order_purchase_timestamp') >= start_date) & (pl.col('order_purchase_timestamp') <= end_date))
     return filtered_orders_df
 
 def get_top_customers(data, n=10):
