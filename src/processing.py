@@ -13,7 +13,7 @@ db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'orders.db')
 
 
 def create_engine():
-    """Create database conncetion. If the database doesn't exist, create it and populate it from database.py"""
+    """Create database connection. If the database doesn't exist, create it and populate it from database.py"""
     #create and populate the database if it doesn't exist
     if not os.path.exists(db_path):
         logging.info("Database doesn't exist. Creating database....")
@@ -27,23 +27,32 @@ def create_engine():
     engine = sa.create_engine(f'duckdb:///{db_path}')
     return engine
 
-
-def load_data_from_db(table_name: str, engine, columns: list[str] = None) -> pl.DataFrame:
+def load_data_from_db(table_name: str, engine, columns: list[str] = None, where: str = None) -> pl.DataFrame:
     """Load data from a DuckDB table into a Polars DataFrame."""
     logging.info(f"Loading data from {table_name}...")
 
     try:
-        # Reflect the orders table
+        # Reflect the table from the database
         metadata = sa.MetaData()
         table = sa.Table(table_name, metadata, autoload_with=engine)
         
-        # If columns is not provided, select all columns
-        if columns is None:
-            columns = [col.name for col in table.columns]
+        # If columns are provided, convert them into Column objects
+        if columns:
+            columns_to_select = [getattr(table.c, col) for col in columns]
+        else:
+            # Select all columns if none are specified
+            columns_to_select = [table.c]
+
+        # Create the select statement
+        stmt = sa.select(*columns_to_select)
         
-        # Query the data using SQLAlchemy ORM and convert to Polars DataFrame
+        # Add optional where clause
+        if where:
+            stmt = stmt.where(where)
+        
+        # Execute the SQL expression using the engine
         with engine.connect() as connection:
-            result = connection.execute(table.select(columns)).fetchall()
+            result = connection.execute(stmt).fetchall()
             data = [dict(row._mapping) for row in result]
             df = pl.DataFrame(data)
 

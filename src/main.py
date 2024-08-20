@@ -1,6 +1,6 @@
 import os
 import logging
-from database import data_pipeline, 
+from database import data_pipeline
 from processing import analyze_and_load, create_engine
 
 def main():
