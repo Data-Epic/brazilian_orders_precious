@@ -75,6 +75,7 @@ root@4608a104ade6:/orders_analysis# runtests
 Yo can alos query the loaded tables in DuckDB usinf `rundb`:
 
 ```sql
+SHOW TABLES;
 SELECT * FROM orders LIMIT 5;
 SELECT * FROM customers_analysis  LIMIT 5;
 SELECT * FROM sales_analysis;
@@ -109,6 +110,8 @@ SELECT * FROM sales_analysis;
 ### Project Structure
 ```
 customer_orders_analysis/
+├── .github/
+  ├──workflows/            # contains ci-cd.yaml for deploying to EC2
 ├── data/                  # Input CSV files
 ├── src/                   # Source code files
 |── tests/                 # Unit tests
@@ -116,6 +119,7 @@ customer_orders_analysis/
 ├── docker-compose.yml     # Docker Compose configuration
 ├── requirements.txt       # Python dependencies
 └── README.md              # This file
+
 ```
 
 ## Customization
