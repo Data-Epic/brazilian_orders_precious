@@ -5,5 +5,5 @@ duckdb-engine #for ORM
 pyarrow #for duckdb to polars
 pandas #for writing to database
 Flask==3.0.0
-flask_swagger=0.2.14
-flask_cors=4.0.1
+flasgger
+flask_cors==4.0.1
