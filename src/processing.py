@@ -199,7 +199,8 @@ def get_top_customers(data, n=10):
     """Get top N customers by total spending"""
     logging.info(f"Getting top {n} customers by total spending")
     customers_df = data.group_by('customer_unique_id').agg([
-        pl.sum('price').round(2).alias('total_orders_value')
+        pl.sum('price').round(2).alias('total_orders_value'),
+        pl.count('item_quantity').alias('total_items_ordered')
         ]).sort('total_orders_value', descending=True).head(n)
     return customers_df
 
