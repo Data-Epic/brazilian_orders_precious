@@ -1,9 +1,20 @@
 from flask import Flask, request, jsonify
+from flasgger import Swagger
+from flask_cors import CORS
 import json
 import processing as p
 
 app = Flask(__name__)
-#swagger = Swagger(app)
+
+# allow cross-origin sharing to use http
+CORS(app)
+
+# adding Swagger
+app.config['SWAGGER'] = {
+    'title': 'Orders API',
+    'uiversion': 3
+}
+Swagger(app, template_file='swagger.yaml')
 
 @app.route('/api/load_table', methods=['GET'])
 def load_table():
@@ -72,7 +83,7 @@ def top_customers():
     """Get top N customers by total spending"""
     n = int(request.args.get('n', 10))
     engine = p.create_engine()
-    columns=['customer_unique_id', 'price']
+    columns=['customer_unique_id', 'price', 'item_quantity']
     orders_df = p.load_data_from_db('orders', engine, columns)
     result = p.get_top_customers(orders_df, n)
     return jsonify(json.loads(result.write_json()))
@@ -109,3 +120,4 @@ def orders_by_product():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
