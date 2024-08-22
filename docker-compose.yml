@@ -3,6 +3,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
     image: orders-analysis
     container_name: orders-analysis-container
     volumes:

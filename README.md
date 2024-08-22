@@ -31,9 +31,13 @@ cd customer_orders_analysis
 - Create a `data/` folder in your working directory
 - Place all CSV files in the `data/` directory
 
-#### 3. Build the Docker image:
+#### 3. Download DUCKDB CLI:
+- Get the [duckdb cli zipped file for linux](https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip). You can donwload the [nightly build](https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip) if that doesn't work.
+- Copy it into the project directory.
+
+#### 4. Build the Docker image and run the container:
 ```bash
-docker-compose build
+docker compose up --build
 ```
 
 This will:
@@ -42,23 +46,34 @@ This will:
 - Download and unzip the DuckDB CLI.
 - Run the database and processing scripts.
 - Create the `orders-analysis` image.
+- Run the flask app
 
-#### 4. Run the container:
+You can access the Swagger docs for the flask app using `http://localhost:5000/apidocs/`
+
+<br>
+
+It is important to stop the container when you're done using  it to avoid unnecessary resource usage.
+- Stop container using `docker compose down`.
+- To remove container , network, and volume, use `docker compose down --volumes`. This helps you  to start from a clean slate.
+
+#### Optional- Run container in interactive shell:
 ```bash
-docker run -it orders-analysis
+docker-compose run --rm --entrypoint /bin/bash orders-analysis
+
 ```
-This opens the container terminal and allows you to run sell commands. 
+This opens the container terminal and allows you to run shell commands. 
 Aliases has been created for tasks like running tests and opening the `orders.db` in DuckDB CLI
 - `runtests`: to run tests
 - `rundb` to open orders database in DuckDB CLi
 - `runpipeline` to run the database and processing scripts
+- `runflaskapp` to run the flask app
 
 **Example usage**
 ```
 root@4608a104ade6:/orders_analysis# runtests
 ```
+Yo can alos query the loaded tables in DuckDB usinf `rundb`:
 
-#### 5. Query the loaded tables in DuckDB:
 ```sql
 SELECT * FROM orders LIMIT 5;
 SELECT * FROM customers_analysis  LIMIT 5;
