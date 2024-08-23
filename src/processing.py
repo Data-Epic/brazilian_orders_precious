@@ -1,7 +1,7 @@
 import polars as pl
 import logging
 import sqlalchemy as sa
-from database import data_pipeline
+from .database import data_pipeline
 from datetime import datetime
 import os
 

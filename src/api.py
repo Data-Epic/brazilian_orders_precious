@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flasgger import Swagger
 from flask_cors import CORS
 import json
-import processing as p
+from . import processing as p
 
 app = Flask(__name__)
 
