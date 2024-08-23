@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "customer_orders_analysis" ]
 env:
-  PYTHONPATH: $PYTHONPATH:$(pwd)/src
+  PYTHONPATH: $PYTHONPATH:./src
 
 permissions:
   contents: read
