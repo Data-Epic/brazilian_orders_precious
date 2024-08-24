@@ -64,45 +64,43 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up SSH agent
-        env:
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Upload Kaggle API Key to EC2
-        run: |
-          echo "${{ secrets.KAGGLE_API_KEY }}" > kaggle.json
-          scp -o StrictHostKeyChecking=no -i private_key kaggle.json ${USER}@${HOST}:/home/${USER}/
+    - name: Set up SSH agent
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.EC2_HOST }}
+        USER: ${{ secrets.EC2_USER }}
+      run: |
+        echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+        eval $(ssh-agent -s)
+        ssh-add private_key
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} 'echo SSH connection successful'
 
-      - name: Download data from Kaggle to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
-            # Set up Kaggle CLI
-            pip install kaggle
-  
-            # Move kaggle.json to the right location
-            mv /home/${USER}/kaggle.json ~/.kaggle/
-  
-            # Download dataset
-            kaggle datasets download -d olistbr/brazilian-ecommerce -p /orders_analysis/data
-  
-            # Unzip the dataset
-            unzip /orders_analysis/data/brazilian-ecommerce.zip -d /orders_analysis/data
-          '
+    - name: Upload Kaggle API Key to EC2
+      run: |
+        echo "${{ secrets.KAGGLE_API_KEY }}" > kaggle.json
+        scp -o StrictHostKeyChecking=no -i private_key kaggle.json ${USER}@${HOST}:/home/${USER}/
 
-      - name: Deploy Docker container
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
-            # Pull the latest Docker image
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
-            sudo docker-compose up --build -d
-          '
+    - name: Download data from Kaggle to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+          echo "Setting up Kaggle CLI..."
+          pip install kaggle
+          mkdir -p ~/.kaggle
+          mv /home/${USER}/kaggle.json ~/.kaggle/
+          echo "Downloading dataset..."
+          kaggle datasets download -d olistbr/brazilian-ecommerce -p /orders_analysis/data
+          echo "Unzipping dataset..."
+          unzip /orders_analysis/data/brazilian-ecommerce.zip -d /orders_analysis/data
+        '
 
- 
-  
+    - name: Deploy Docker container
+      run: |
+        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+          echo "Pulling Docker image..."
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+          echo "Deploying Docker container..."
+          sudo docker compose up --build -d
+        '
