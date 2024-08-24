@@ -192,7 +192,9 @@ def get_orders_by_date(data, start_date, end_date):
     start_date = datetime.strptime(start_date, '%Y-%m-%d')
     end_date = datetime.strptime(end_date, '%Y-%m-%d')
     
-    filtered_orders_df = data.filter((pl.col('order_purchase_timestamp') >= start_date) & (pl.col('order_purchase_timestamp') <= end_date))
+    filtered_orders_df = data.filter(
+        (pl.col('order_purchase_timestamp') >= start_date) & 
+        (pl.col('order_purchase_timestamp') <= end_date))
     return filtered_orders_df
 
 def get_top_customers(data, n=10):
