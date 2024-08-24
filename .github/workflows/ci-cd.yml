@@ -65,28 +65,45 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-  
-      - name: Set up SSH agent and deploy to EC2
+        uses: actions/checkout@v4#
+        
+      - name: Set up SSH agent
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          # Start the ssh-agent
           eval $(ssh-agent -s)
-  
-          # Add the private key to the ssh-agent directly
           echo "$PRIVATE_KEY" | ssh-add -
+
+      - name: Upload Kaggle API Key to EC2
+        run: |
+          echo "${{ secrets.KAGGLE_API_KEY }}" > kaggle.json
+          scp -o StrictHostKeyChecking=no -i private_key kaggle.json ${USER}@${HOST}:/home/${USER}/
+
+      - name: Download data from Kaggle to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+            # Set up Kaggle CLI
+            pip install kaggle
   
-          # Check if the key was added correctly (Optional debugging)
-          ssh-add -l
+            # Move kaggle.json to the right location
+            mv /home/${USER}/kaggle.json ~/.kaggle/
   
-          # Connect to EC2 and deploy the Docker container
-          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} '
-            sudo docker pull $DOCKER_USERNAME/orders-analysis:latest
-            sudo docker compose up --build -d
+            # Download dataset
+            kaggle datasets download -d olistbr/brazilian-ecommerce -p /orders_analysis/data
+  
+            # Unzip the dataset
+            unzip /orders_analysis/data/brazilian-ecommerce.zip -d /orders_analysis/data
           '
-  
+
+      - name: Deploy Docker container
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+            # Pull the latest Docker image
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+            sudo docker-compose up --build -d
+          '
+
+ 
   
