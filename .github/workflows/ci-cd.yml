@@ -85,5 +85,5 @@ jobs:
         echo "Pulling Docker image..."
         sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
         echo "Deploying Docker container..."
-        sudo docker run -d
+        sudo docker run orders-analysis:latest -d
         '
