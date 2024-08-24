@@ -9,7 +9,6 @@ RUN wget https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip
 RUN unzip duckdb-binaries-linux.zip
 RUN unzip duckdb_cli-linux-amd64.zip  
 RUN rm duckdb-binaries-linux.zip duckdb_cli-linux-amd64.zip libduckdb-linux-amd64.zip 
-COPY duckdb ./duckdb
 RUN chmod +x ./duckdb
 
 # install depencencies
