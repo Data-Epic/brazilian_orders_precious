@@ -58,24 +58,35 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
 
   deploy-to-ec2:
-      name: Pull image from Dockerhub and deploy to EC2
-      needs: build
-      runs-on: ubuntu-latest
-      environment: production
-  
-      steps:
+    name: Pull image from Dockerhub and deploy to EC2
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
   
-      - name: Deploy to EC2
+      - name: Set up SSH agent and deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+          # Start the ssh-agent
+          eval $(ssh-agent -s)
+  
+          # Add the private key to the ssh-agent directly
+          echo "$PRIVATE_KEY" | ssh-add -
+  
+          # Check if the key was added correctly (Optional debugging)
+          ssh-add -l
+  
+          # Connect to EC2 and deploy the Docker container
+          ssh -o StrictHostKeyChecking=no ${USER}@${HOST} '
+            sudo docker pull $DOCKER_USERNAME/orders-analysis:latest
             sudo docker compose up --build -d
           '
-              
+  
+  
