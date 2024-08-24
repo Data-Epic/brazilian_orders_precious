@@ -76,14 +76,21 @@ jobs:
         echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
         echo "Connected to EC2 instance SSH"
+        
         echo "Downloading and unzipping dataset..."
         rm -rf /home/${USER}/data
         mkdir -p /home/${USER}/data
         kaggle datasets download -d olistbr/brazilian-ecommerce -p /home/${USER}/data
         unzip /home/${USER}/data/brazilian-ecommerce.zip -d /home/${USER}/data
         rm /home/${USER}/data/brazilian-ecommerce.zip
+        
         echo "Pulling Docker image..."
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
         echo "Deploying Docker container..."
-        sudo docker run orders-analysis:latest -d
+        sudo docker run -d \
+        -p 5000:5000 \
+        -v /home/ec2-user/data:/orders_analysis/data \
+        --name orders-analysis-container \
+        ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
         '
