@@ -22,7 +22,7 @@ COPY . /orders_analysis
 ENV PYTHONPATH=/orders_analysis/src
 
 # Run the data processing 
-RUN python src/main.py
+RUN python ./src/main.py
 
 # Add aliases for major tasks
 RUN echo "alias runtests='python -m unittest discover -s tests'" >> ~/.bashrc
@@ -37,4 +37,4 @@ RUN /bin/bash -c "source ~/.bashrc"
 EXPOSE 5000
 
 # Set entrypoint
-ENTRYPOINT ["python", "src/api.py"]
+ENTRYPOINT ["python", "./src/api.py"]
