@@ -4,10 +4,11 @@ FROM python:3-slim
 WORKDIR /orders_analysis
 
 # Download and install DuckDB CLI
-# RUN apt-get update && apt-get install -y wget unzip
-# RUN wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip
-# RUN unzip duckdb_cli-linux-amd64.zip
-# RUN rm duckdb_cli-linux-amd64.zip
+RUN apt-get update && apt-get install -y wget unzip
+RUN wget https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip
+RUN unzip duckdb-binaries-linux.zip
+RUN unzip duckdb_cli-linux-amd64.zip  
+RUN rm duckdb-binaries-linux.zip duckdb_cli-linux-amd64.zip libduckdb-linux-amd64.zip 
 COPY duckdb ./duckdb
 RUN chmod +x ./duckdb
 
@@ -26,7 +27,7 @@ RUN python src/main.py
 
 # Add aliases for major tasks
 RUN echo "alias runtests='python -m unittest discover -s tests'" >> ~/.bashrc
-RUN echo "alias rundb='./duckdb orders.db'" >> ~/.bashrc
+RUN echo "alias runduckdb='./duckdb orders.db'" >> ~/.bashrc
 RUN echo "alias runpipeline='python src/main.py'" >> ~/.bashrc
 RUN echo "alias runflaskapp='python src/api.py'" >> ~/.bashrc
 
