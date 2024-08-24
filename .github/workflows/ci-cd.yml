@@ -35,7 +35,7 @@ jobs:
       run: |
         echo "Running unit tests..."
         pytest
-        
+
     - name: Build Docker image
       run: |
         echo "Building Docker image..."
