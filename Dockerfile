@@ -21,9 +21,6 @@ COPY . /orders_analysis
 # Set the PYTHONPATH so that the 'src' module can be found
 ENV PYTHONPATH=/orders_analysis/src
 
-# Run the data processing 
-RUN python ./src/main.py
-
 # Add aliases for major tasks
 RUN echo "alias runtests='python -m unittest discover -s tests'" >> ~/.bashrc
 RUN echo "alias runduckdb='./duckdb orders.db'" >> ~/.bashrc
@@ -33,8 +30,8 @@ RUN echo "alias runflaskapp='python src/api.py'" >> ~/.bashrc
 # Source the bashrc to activate the aliases
 RUN /bin/bash -c "source ~/.bashrc"
 
-# espose port
+# expose port
 EXPOSE 5000
 
-# Set entrypoint
-ENTRYPOINT ["python", "./src/api.py"]
+#  Set entrypoint to first run main.py then api.py
+ENTRYPOINT ["bash", "-c", "python ./src/main.py && python ./src/api.py"]
