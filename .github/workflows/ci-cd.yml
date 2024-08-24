@@ -33,6 +33,7 @@ jobs:
       
     - name: Run unit tests
       run: |
+        source myenv/bin/activate
         echo "Running unit tests..."
         pytest
 

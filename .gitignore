@@ -5,8 +5,9 @@ venv/
 
 # Ignore Python bytecode files
 __pycache__/
-*.py[cod]
+*.py*
 *$py.class
+
 
 
 # Ignore database files
@@ -24,3 +25,9 @@ __pycache__/
 
 # Ignore duckdb
 duckdb
+
+# ignore 
+.vscode 
+
+
+
