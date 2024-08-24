@@ -77,6 +77,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
         echo "Connected to EC2 instance SSH"
         echo "Downloading and unzipping dataset..."
+        rm -rf /home/${USER}/data
         mkdir -p /home/${USER}/data
         kaggle datasets download -d olistbr/brazilian-ecommerce -p /home/${USER}/data
         unzip /home/${USER}/data/brazilian-ecommerce.zip -d /home/${USER}/data
