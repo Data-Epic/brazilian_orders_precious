@@ -1,6 +1,5 @@
 FROM python:3-slim
 
-# set working directory
 WORKDIR /orders_analysis
 
 # Download and install DuckDB CLI
@@ -15,10 +14,10 @@ RUN chmod +x ./duckdb
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project code
+
 COPY . /orders_analysis
 
-# Set the PYTHONPATH so that the 'src' module can be found
+# Set the PYTHONPATH so that the 'src' module can be found by tests
 ENV PYTHONPATH=/orders_analysis/src
 
 # Add aliases for major tasks
@@ -30,7 +29,6 @@ RUN echo "alias runflaskapp='python src/api.py'" >> ~/.bashrc
 # Source the bashrc to activate the aliases
 RUN /bin/bash -c "source ~/.bashrc"
 
-# expose port
 EXPOSE 5000
 
 #  Set entrypoint to first run main.py then api.py
