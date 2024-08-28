@@ -2,9 +2,9 @@ name: Brazillian Orders CI/CD Pipeline for Docker to EC2
 
 on:
   push:
-    branches: [ "customer_orders_analysis" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "customer_orders_analysis" ]
+    branches: [ "main" ]
 
 permissions:
   contents: read
