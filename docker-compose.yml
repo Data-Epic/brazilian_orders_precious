@@ -3,18 +3,14 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    
     ports:
       - "5000:5000"
-    
     image: orders-analysis
-    
     container_name: orders-analysis-container
-    
     volumes:
       - ./data:/app/data  # Mounts the host's ./data directory to /app/data in the container
       - ./src:/app/src    # Mounts the host's ./src directory to /app/src in the container
       - ./tests:/app/tests  # Mounts the host's ./tests directory to /app/tests in the container
-    
     stdin_open: true
     tty: true
+
