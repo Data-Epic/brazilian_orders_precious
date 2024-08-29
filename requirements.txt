@@ -1,9 +1,9 @@
 polars
 duckdb
-sqlalchemy #for ORM
-duckdb-engine #for ORM
+sqlalchemy 
+duckdb-engine 
 pyarrow #for duckdb to polars
-pandas #for writing to database
+pandas 
 Flask==3.0.0
 flasgger
 flask_cors==4.0.1

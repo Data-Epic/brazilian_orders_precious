@@ -1,22 +1,24 @@
-# Ignore Python virtual environments
-.venv/
+# Environments
+.env
+.venv
 env/
 venv/
+ENV/
 
-# Ignore Python bytecode files
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py*
+*.py[cod]
 *$py.class
 
+# Unit test  reports
+.pytest_cache/
+.cache
 
-
-# Ignore database files
+# Data files
+*.csv
 *.db
 
-# Ignore CSV files
-*.csv
-
-# Ignore Jupyter Notebook checkpoints
+# Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
 # Ignore log files and temporary files

@@ -14,7 +14,6 @@ RUN chmod +x ./duckdb
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 COPY . /orders_analysis
 
 # Set the PYTHONPATH so that the 'src' module can be found by tests

@@ -25,8 +25,9 @@ def main():
         logger.info("Data analysis completed successfully.")
         
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}", exc_info=True)
         raise
 
 if __name__ == "__main__":
     main()
+    

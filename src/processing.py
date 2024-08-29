@@ -5,7 +5,7 @@ from database import data_pipeline
 from datetime import datetime
 import os
 
-# Set up logging
+# Set up logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def create_engine():
     """Create database connection. If the database doesn't exist, create it and populate it from database.py"""
     #create and populate the database if it doesn't exist
     if not os.path.exists(db_path):
-        logging.info("Database doesn't exist. Creating database....")
+        logger.info("Database doesn't exist. Creating database....")
 
         # Set working directory and database path
         SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,24 +30,21 @@ def create_engine():
 
 def load_data_from_db(table_name: str, engine, columns: list[str] = None, where: str = None) -> pl.DataFrame:
     """Load data from a DuckDB table into a Polars DataFrame."""
-    logging.info(f"Loading data from {table_name}...")
+    logger.info(f"Loading data from {table_name}...")
 
     try:
-        # Reflect the table from the database
         metadata = sa.MetaData()
         table = sa.Table(table_name, metadata, autoload_with=engine)
         
-        # If columns are provided, convert them into Column objects
+        # If columns are provided, convert them into Column objects else, select all columns
         if columns:
             columns_to_select = [getattr(table.c, col) for col in columns]
         else:
-            # Select all columns if none are specified
             columns_to_select = [table.c]
 
         # Create the select statement
         stmt = sa.select(*columns_to_select)
         
-        # Add optional where clause
         if where:
             stmt = stmt.where(where)
         
@@ -57,15 +54,15 @@ def load_data_from_db(table_name: str, engine, columns: list[str] = None, where:
             data = [dict(row._mapping) for row in result]
             df = pl.DataFrame(data)
 
-        logging.info(f"Successfully loaded data from {table_name}")
+        logger.info(f"Successfully loaded data from {table_name}")
         return df
     
     except Exception as e:
-        logging.error(f"Failed to load data from {table_name}: {e}")
+        logger.error(f"Failed to load data from {table_name}: {e}", exc_info=True)
         raise
 
 def get_customer_spending(data):
-    logging.info("Calculating customer spending...")
+    logger.info("Calculating customer spending...")
     customers_df = data.group_by('customer_unique_id').agg([
         pl.sum('price').round(2).alias('total_orders_value'),
         pl.count('order_id').alias('order_count'),
@@ -75,22 +72,22 @@ def get_customer_spending(data):
         pl.min('order_purchase_timestamp').alias('first_order_date'),
         pl.first('customer_city')
     ])
-    logging.info("Customer spending calculation completed.")
+    logger.info("Customer spending calculation completed.")
     return customers_df
 
 def get_sales_per_seller(data):
-    logging.info("Calculating sales per seller...")
+    logger.info("Calculating sales per seller...")
     sellers_df = data.group_by('seller_id').agg([
         pl.sum('price').round(2).alias('total_orders_value'),
         pl.count('order_id').alias('total_orders'),
         pl.sum('item_quantity').alias('total_products_sold'),
         pl.first('seller_city')
     ])
-    logging.info("Sales per seller calculation completed.")
+    logger.info("Sales per seller calculation completed.")
     return sellers_df
 
 def get_product_sales_analysis(data):
-    logging.info("Performing product sales analysis...")
+    logger.info("Performing product sales analysis...")
     # Add product category name in English and if null, add in Portuguese in product df
     products_df = data.with_columns([
         pl.when(pl.col('product_category_name_english').is_null())
@@ -106,11 +103,11 @@ def get_product_sales_analysis(data):
         pl.first('product_category_name_english').alias('product_category')
     ]).sort('total_sold', descending=True)
 
-    logging.info("Product sales analysis completed.")
+    logger.info("Product sales analysis completed.")
     return products_df
 
 def get_sales_analysis(data):
-    logging.info("Running overall sales analysis...")
+    logger.info("Running overall sales analysis...")
     # Top Seller
     top_seller = data.group_by('seller_id').agg([
         pl.sum('price').round(2).alias('total_sales')
@@ -151,22 +148,22 @@ def get_sales_analysis(data):
         "avg_shipping_fee": avg_shipping_fee['avg_shipping_fee']
     })
 
-    logging.info("Overall sales analysis completed.")
+    logger.info("Overall sales analysis completed.")
     return sales_analysis_df
 
 def save_to_duckdb(data: pl.DataFrame, table_name: str, engine):
     """Save a Polars DataFrame to a DuckDB table."""
     try:
-        logging.info(f"Saving DataFrame to table: {table_name}")
+        logger.info(f"Saving DataFrame to table: {table_name}")
         data.write_database(table_name=table_name, connection=engine, if_table_exists='replace')
-        logging.info(f"DataFrame successfully saved to {table_name}")
+        logger.info(f"DataFrame successfully saved to {table_name}")
     except Exception as e:
-        logging.error(f"Failed to save DataFrame to {table_name}: {e}")
+        logger.error(f"Failed to save DataFrame to {table_name}: {e}")
         raise
 
 def analyze_and_load(table_name: str, engine):
     """Runs the full analytics pipeline on the orders database and save to duckdb."""
-    logging.info("Starting analysis and loading data into DuckDB.")
+    logger.info("Starting analysis and loading data into DuckDB.")
     
     orders_df = load_data_from_db(table_name, engine)
     
@@ -180,13 +177,13 @@ def analyze_and_load(table_name: str, engine):
     for table, df in dfs.items():
         save_to_duckdb(df, table, engine)
 
-    logging.info("Analysis and data loading completed.")
+    logger.info("Analysis and data loading completed.")
 
 # Simple filtering functions
 
 def get_orders_by_date(data, start_date, end_date):
     """Get orders within a specific date range e.g 2017-08-10 - 2018-10-12"""
-    logging.info(f"Getting orders between {start_date} and {end_date}")
+    logger.info(f"Getting orders between {start_date} and {end_date}")
     
     # Convert strings to datetime objects
     start_date = datetime.strptime(start_date, '%Y-%m-%d')
@@ -199,7 +196,7 @@ def get_orders_by_date(data, start_date, end_date):
 
 def get_top_customers(data, n=10):
     """Get top N customers by total spending"""
-    logging.info(f"Getting top {n} customers by total spending")
+    logger.info(f"Getting top {n} customers by total spending")
     customers_df = data.group_by('customer_unique_id').agg([
         pl.sum('price').round(2).alias('total_orders_value'),
         pl.count('item_quantity').alias('total_items_ordered')
@@ -208,19 +205,19 @@ def get_top_customers(data, n=10):
 
 def get_orders_by_customer(data, customer_id):
     """Get orders for a specific customer"""
-    logging.info(f"Getting orders for customer {customer_id}")
+    logger.info(f"Getting orders for customer {customer_id}")
     filtered_orders_df = data.filter(pl.col('customer_unique_id') == customer_id)
     return filtered_orders_df
 
 def get_orders_by_seller(data, seller_id):
     """Get orders for a specific seller"""
-    logging.info(f"Getting orders for seller {seller_id}")
+    logger.info(f"Getting orders for seller {seller_id}")
     filtered_orders_df = data.filter(pl.col('seller_id') == seller_id)
     return filtered_orders_df
 
 def get_orders_by_product(data, product_id):
     """Get orders for a specific product"""
-    logging.info(f"Getting orders for product {product_id}")
+    logger.info(f"Getting orders for product {product_id}")
     filtered_orders_df = data.filter(pl.col('product_id') == product_id)
     return filtered_orders_df
 
