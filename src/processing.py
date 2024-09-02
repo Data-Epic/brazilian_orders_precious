@@ -1,9 +1,10 @@
 import polars as pl
 import logging
 import sqlalchemy as sa
-from database import data_pipeline
+from src.database import data_pipeline
 from datetime import datetime
 import os
+from typing import Optional, Any
 
 # Set up logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'orders.db')
 
 
-def create_engine():
+def create_engine() -> sa.engine.Engine:    
     """Create database connection. If the database doesn't exist, create it and populate it from database.py"""
     #create and populate the database if it doesn't exist
     if not os.path.exists(db_path):
@@ -28,7 +29,7 @@ def create_engine():
     engine = sa.create_engine(f'duckdb:///{db_path}')
     return engine
 
-def load_data_from_db(table_name: str, engine, columns: list[str] = None, where: str = None) -> pl.DataFrame:
+def load_data_from_db(table_name: str, engine: sa.engine.Engine, columns: Optional[list[str]] = None) -> pl.DataFrame:
     """Load data from a DuckDB table into a Polars DataFrame."""
     logger.info(f"Loading data from {table_name}...")
 
@@ -44,9 +45,7 @@ def load_data_from_db(table_name: str, engine, columns: list[str] = None, where:
 
         # Create the select statement
         stmt = sa.select(*columns_to_select)
-        
-        if where:
-            stmt = stmt.where(where)
+    
         
         # Execute the SQL expression using the engine
         with engine.connect() as connection:
@@ -61,8 +60,10 @@ def load_data_from_db(table_name: str, engine, columns: list[str] = None, where:
         logger.error(f"Failed to load data from {table_name}: {e}", exc_info=True)
         raise
 
-def get_customer_spending(data):
+def get_customer_spending(data: pl.DataFrame) -> pl.DataFrame:
+    """Get orders and spending value for each customer"""
     logger.info("Calculating customer spending...")
+
     customers_df = data.group_by('customer_unique_id').agg([
         pl.sum('price').round(2).alias('total_orders_value'),
         pl.count('order_id').alias('order_count'),
@@ -75,8 +76,10 @@ def get_customer_spending(data):
     logger.info("Customer spending calculation completed.")
     return customers_df
 
-def get_sales_per_seller(data):
+def get_sales_per_seller(data: pl.DataFrame) -> pl.DataFrame:
+    """Get orders and sales value for each seller"""
     logger.info("Calculating sales per seller...")
+
     sellers_df = data.group_by('seller_id').agg([
         pl.sum('price').round(2).alias('total_orders_value'),
         pl.count('order_id').alias('total_orders'),
@@ -86,8 +89,10 @@ def get_sales_per_seller(data):
     logger.info("Sales per seller calculation completed.")
     return sellers_df
 
-def get_product_sales_analysis(data):
+def get_product_sales_analysis(data: pl.DataFrame) -> pl.DataFrame:
+    """Get sales analysis for each product"""
     logger.info("Performing product sales analysis...")
+
     # Add product category name in English and if null, add in Portuguese in product df
     products_df = data.with_columns([
         pl.when(pl.col('product_category_name_english').is_null())
@@ -106,7 +111,8 @@ def get_product_sales_analysis(data):
     logger.info("Product sales analysis completed.")
     return products_df
 
-def get_sales_analysis(data):
+def get_sales_analysis(data: pl.DataFrame) -> pl.DataFrame:
+    """Get overall sales analysis"""
     logger.info("Running overall sales analysis...")
     # Top Seller
     top_seller = data.group_by('seller_id').agg([
@@ -151,23 +157,23 @@ def get_sales_analysis(data):
     logger.info("Overall sales analysis completed.")
     return sales_analysis_df
 
-def save_to_duckdb(data: pl.DataFrame, table_name: str, engine):
+def save_to_duckdb(data: pl.DataFrame, table_name: str, engine: sa.engine.Engine) -> None:
     """Save a Polars DataFrame to a DuckDB table."""
     try:
         logger.info(f"Saving DataFrame to table: {table_name}")
         data.write_database(table_name=table_name, connection=engine, if_table_exists='replace')
         logger.info(f"DataFrame successfully saved to {table_name}")
     except Exception as e:
-        logger.error(f"Failed to save DataFrame to {table_name}: {e}")
+        logger.error(f"Failed to save DataFrame to {table_name}: {e}", exc_info=True)
         raise
 
-def analyze_and_load(table_name: str, engine):
+def analyze_and_load(table_name: str, engine: sa.engine.Engine) -> None:
     """Runs the full analytics pipeline on the orders database and save to duckdb."""
     logger.info("Starting analysis and loading data into DuckDB.")
     
     orders_df = load_data_from_db(table_name, engine)
     
-    dfs = {
+    dfs: dict[str, pl.DataFrame] = {
         'customers_analysis': get_customer_spending(orders_df),
         'sellers_analysis': get_sales_per_seller(orders_df),
         'products_analysis': get_product_sales_analysis(orders_df),
@@ -181,20 +187,20 @@ def analyze_and_load(table_name: str, engine):
 
 # Simple filtering functions
 
-def get_orders_by_date(data, start_date, end_date):
+def get_orders_by_date(data: pl.DataFrame, start_date: str, end_date: str) -> pl.DataFrame:
     """Get orders within a specific date range e.g 2017-08-10 - 2018-10-12"""
     logger.info(f"Getting orders between {start_date} and {end_date}")
     
     # Convert strings to datetime objects
-    start_date = datetime.strptime(start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    start_date_dt = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date_dt = datetime.strptime(end_date, '%Y-%m-%d')
     
     filtered_orders_df = data.filter(
-        (pl.col('order_purchase_timestamp') >= start_date) & 
-        (pl.col('order_purchase_timestamp') <= end_date))
+        (pl.col('order_purchase_timestamp') >= start_date_dt) & 
+        (pl.col('order_purchase_timestamp') <= end_date_dt))
     return filtered_orders_df
 
-def get_top_customers(data, n=10):
+def get_top_customers(data: pl.DataFrame, n: int = 10) -> pl.DataFrame:
     """Get top N customers by total spending"""
     logger.info(f"Getting top {n} customers by total spending")
     customers_df = data.group_by('customer_unique_id').agg([
@@ -203,19 +209,19 @@ def get_top_customers(data, n=10):
         ]).sort('total_orders_value', descending=True).head(n)
     return customers_df
 
-def get_orders_by_customer(data, customer_id):
+def get_orders_by_customer(data: pl.DataFrame, customer_id: str) -> pl.DataFrame:
     """Get orders for a specific customer"""
     logger.info(f"Getting orders for customer {customer_id}")
     filtered_orders_df = data.filter(pl.col('customer_unique_id') == customer_id)
     return filtered_orders_df
 
-def get_orders_by_seller(data, seller_id):
+def get_orders_by_seller(data: pl.DataFrame, seller_id: str) -> pl.DataFrame:
     """Get orders for a specific seller"""
     logger.info(f"Getting orders for seller {seller_id}")
     filtered_orders_df = data.filter(pl.col('seller_id') == seller_id)
     return filtered_orders_df
 
-def get_orders_by_product(data, product_id):
+def get_orders_by_product(data: pl.DataFrame, product_id: str) -> pl.DataFrame:
     """Get orders for a specific product"""
     logger.info(f"Getting orders for product {product_id}")
     filtered_orders_df = data.filter(pl.col('product_id') == product_id)

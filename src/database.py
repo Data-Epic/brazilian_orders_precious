@@ -1,17 +1,18 @@
 import os
 import logging
 from sqlalchemy import inspect, create_engine, Sequence, Column, Integer, String, Float, DateTime
-from sqlalchemy.orm import sessionmaker, declarative_base
-from typing import Type
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import polars as pl
 from datetime import datetime
+from typing import Any, Type
+
 
 # Set up logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Define the base for ORM models
-Base: Type[Base] = declarative_base()
+Base: Type[Any] = declarative_base()
 
 # ORM model for the 'orders' table
 class Order(Base):
@@ -43,7 +44,7 @@ class Order(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)  
 
 
-def setup_database(db_path: str):
+def setup_database(db_path: str) -> Any:
     """Sets up the DuckDB database and returns the engine."""
     logger.info("Setting up database...")
     engine = create_engine(f'duckdb:///{db_path}')
@@ -59,13 +60,13 @@ def setup_database(db_path: str):
     logger.info("Database setup complete.")
     return engine
 
-def create_session(engine):
+def create_session(engine: Any) -> Session:
     """Creates and returns a new database session."""
     logger.info("Creating a new database session...")
     Session = sessionmaker(bind=engine)
     return Session()
 
-def load_csv_data(working_dir: str) -> dict:
+def load_csv_data(working_dir: str) -> dict[str, pl.DataFrame]:
     """Load all necessary CSV files into Polars DataFrames."""
     logger.info("Loading CSV data into Polars DataFrames...")
     file_paths = {
@@ -79,7 +80,7 @@ def load_csv_data(working_dir: str) -> dict:
         'product_translation': 'product_category_name_translation.csv'
     }
 
-    data_frames = {}
+    data_frames: dict[str, pl.DataFrame] = {}
 
     for key, filename in file_paths.items():
         full_path = os.path.join(working_dir, filename)
@@ -91,7 +92,7 @@ def load_csv_data(working_dir: str) -> dict:
     logger.info("Data loaded into DataFrames.")
     return data_frames
 
-def process_data(data_frames: dict):
+def process_data(data_frames: dict[str, pl.DataFrame]) -> pl.DataFrame:
     """Process data by joining, aggregating, and transforming."""
     
     logger.info("Processing data...")
@@ -170,7 +171,7 @@ def process_data(data_frames: dict):
 
     return final_orders_df
 
-def insert_data_into_db(session, final_orders_df):
+def insert_data_into_db(session: Session, final_orders_df: pl.DataFrame) -> None:
     """Inserts processed data into the DuckDB database."""
     logger.info("Inserting data into the database...")
     
@@ -190,7 +191,7 @@ def insert_data_into_db(session, final_orders_df):
         session.close()
         logger.info("Database session closed.")
 
-def data_pipeline(WORKING_DIR):
+def data_pipeline(WORKING_DIR: str) -> None:
     ''' Runs the entire data pipeline'''
     logger.info("Starting data pipeline...")
 

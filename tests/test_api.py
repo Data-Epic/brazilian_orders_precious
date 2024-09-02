@@ -45,16 +45,26 @@ def reset_mock_df():
     mock_orders_df = mock_orders_df.sort("order_id")  # Reset mock DF between tests
     yield
 
-# Efficient testing by mocking create_engine and having a central mock DataFrame
-@patch('src.api.p.create_engine')  # Mock create_engine
-@patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)  # Mock load_data_from_db
+@patch('src.api.p.create_engine')
+@patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
+def test_load_table(mock_load_data_from_db, mock_create_engine, client):
+    mock_create_engine.return_value = MagicMock()
+    response = client.get('/api/load_table?table_name=orders')
+    assert response.status_code == 200
+    response_json = response.get_json()
+    assert response_json['status'] == 'success'
+    assert len(response_json['message']) > 0
+
+@patch('src.api.p.create_engine')  
+@patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db) 
 def test_customers_table(mock_load_data_from_db, mock_create_engine, client):
     mock_create_engine.return_value = MagicMock()
     response = client.get('/api/customers')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 2
-    assert {customer['customer_unique_id'] for customer in response_json} == {'cust_1', 'cust_2'}
+    assert response_json['status'] == 'success'
+    assert len(response_json['message']) == 2    
+    assert {customer['customer_unique_id'] for customer in response_json['message']} == {'cust_1', 'cust_2'}
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -63,8 +73,8 @@ def test_sellers_table(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/sellers')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 2
-    assert {seller['seller_id'] for seller in response_json} == {'seller_1', 'seller_2'}
+    assert len(response_json['message']) == 2
+    assert {seller['seller_id'] for seller in response_json['message']} == {'seller_1', 'seller_2'}
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -73,8 +83,8 @@ def test_product_table(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/products')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 2
-    assert {product['product_id'] for product in response_json} == {'prod_1', 'prod_2'}
+    assert len(response_json['message']) == 2
+    assert {product['product_id'] for product in response_json['message']} == {'prod_1', 'prod_2'}
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -83,10 +93,10 @@ def test_sales_analysis(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/sales_analysis')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 1
-    assert response_json[0]['avg_order_value'] == 150.0
-    assert response_json[0]['avg_shipping_fee'] == 15.0
-    assert response_json[0]['most_sold_product_count'] == 1
+    assert len(response_json['message']) == 1
+    assert response_json['message'][0]['avg_order_value'] == 150.0
+    assert response_json['message'][0]['avg_shipping_fee'] == 15.0
+    assert response_json['message'][0]['most_sold_product_count'] == 1
 
 
 @patch('src.api.p.create_engine')
@@ -96,8 +106,8 @@ def test_orders_by_date(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/orders_by_date?start_date=2022-01-01&end_date=2022-01-02')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 2
-    assert {order['order_purchase_timestamp'] for order in response_json} == {'2022-01-01', '2022-01-02'}
+    assert len(response_json['message']) == 2
+    assert {order['order_purchase_timestamp'] for order in response_json['message']} == {'2022-01-01', '2022-01-02'}
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -106,8 +116,8 @@ def test_top_customers(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/top_customers?n=2')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 2
-    assert {customer['customer_unique_id'] for customer in response_json} == {'cust_1', 'cust_2'}
+    assert len(response_json['message']) == 2
+    assert {customer['customer_unique_id'] for customer in response_json['message']} == {'cust_1', 'cust_2'}
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -116,8 +126,8 @@ def test_orders_by_customer(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/orders_by_customer?customer_id=cust_1')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 1
-    assert response_json[0]['customer_unique_id'] == 'cust_1'
+    assert len(response_json['message']) == 1
+    assert response_json['message'][0]['customer_unique_id'] == 'cust_1'
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -126,8 +136,8 @@ def test_orders_by_seller(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/orders_by_seller?seller_id=seller_1')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 1
-    assert response_json[0]['seller_id'] == 'seller_1'
+    assert len(response_json['message']) == 1
+    assert response_json['message'][0]['seller_id'] == 'seller_1'
 
 @patch('src.api.p.create_engine')
 @patch('src.api.p.load_data_from_db', side_effect=mock_load_data_from_db)
@@ -136,6 +146,6 @@ def test_orders_by_product(mock_load_data_from_db, mock_create_engine, client):
     response = client.get('/api/orders_by_product?product_id=prod_1')
     assert response.status_code == 200
     response_json = response.get_json()
-    assert len(response_json) == 1
-    assert response_json[0]['product_id'] == 'prod_1'
+    assert len(response_json['message']) == 1
+    assert response_json['message'][0]['product_id'] == 'prod_1'
 
