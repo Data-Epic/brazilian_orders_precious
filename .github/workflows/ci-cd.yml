@@ -74,7 +74,7 @@ jobs:
         USER: ${{ secrets.EC2_USER }}
       run: |
         echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-        ssh -o StrictHostKeyChecking=no -i private_key ${USER}@${HOST} '
+        ssh -o StrictHostKeyChecking=no -i private_key -vvv ${USER}@${HOST} '
         echo "Connected to EC2 instance SSH"
         
         echo "Downloading and unzipping dataset..."
