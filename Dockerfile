@@ -31,5 +31,5 @@ RUN /bin/bash -c "source ~/.bashrc"
 EXPOSE 5000
 
 #  Set entrypoint to first run main.py then api.py
-ENTRYPOINT ["bash", "-c", "python ./src/main.py && python ./src/api.py"]
+ENTRYPOINT ["bash", "-c", "python -m src.main && python -m src.api"]
 
