@@ -26,12 +26,18 @@ cd customer_orders_analysis
 ```
 
 #### 2. Download the dataset:
-- Get the list dataset and information from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), unzip the downloaded zip file
+- Get the list dataset and information from [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+- Unzip the downloaded zip file
+- Create a `data/` folder in your working directory
 - Place all CSV files in the `data/` directory
 
-#### 3. Build and run the Docker container:
+#### 3. Download DUCKDB CLI:
+- Get the [duckdb cli zipped file for linux](https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip). You can donwload the [nightly build](https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip) if that doesn't work.
+- Copy it into the project directory.
+
+#### 4. Build the Docker image and run the container:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 This will:
@@ -39,19 +45,40 @@ This will:
 - Install necessary dependencies.
 - Download and unzip the DuckDB CLI.
 - Run the database and processing scripts.
-- Run tests on the scripts
-- Open the DuckDB CLI.
+- Create the `orders-analysis` image.
+- Run the flask app
 
-#### 4. In a new terminal, start the container:
+You can access the Swagger docs for the flask app using `http://localhost:5000/apidocs/`
+
+<br>
+
+It is important to stop the container when you're done using  it to avoid unnecessary resource usage.
+- Stop container using `docker compose down`.
+- To remove container , network, and volume, use `docker compose down --volumes`. This helps you  to start from a clean slate.
+
+#### Optional- Run container in interactive shell:
 ```bash
-docker start -ai orders-analysis-container
-```
+docker-compose run --rm --entrypoint /bin/bash orders-analysis
 
-#### 6. Query the loaded tables in DuckDB:
+```
+This opens the container terminal and allows you to run shell commands. 
+Aliases has been created for tasks like running tests and opening the `orders.db` in DuckDB CLI
+- `runtests`: to run tests
+- `rundb` to open orders database in DuckDB CLi
+- `runpipeline` to run the database and processing scripts
+- `runflaskapp` to run the flask app
+
+**Example usage**
+```
+root@4608a104ade6:/orders_analysis# runtests
+```
+Yo can alos query the loaded tables in DuckDB usinf `rundb`:
+
 ```sql
+SHOW TABLES;
 SELECT * FROM orders LIMIT 5;
 SELECT * FROM customers_analysis  LIMIT 5;
-SELECT * FROM sales_analysis LIMIT 5;
+SELECT * FROM sales_analysis;
 ```
 
 ## Project Info
@@ -83,6 +110,8 @@ SELECT * FROM sales_analysis LIMIT 5;
 ### Project Structure
 ```
 customer_orders_analysis/
+├── .github/
+  ├──workflows/            # contains ci-cd.yaml for deploying to EC2
 ├── data/                  # Input CSV files
 ├── src/                   # Source code files
 |── tests/                 # Unit tests
@@ -90,6 +119,7 @@ customer_orders_analysis/
 ├── docker-compose.yml     # Docker Compose configuration
 ├── requirements.txt       # Python dependencies
 └── README.md              # This file
+
 ```
 
 ## Customization
@@ -104,6 +134,21 @@ docker-compose up --build
 #### Data Ingestion and Processing:
 
 Modify the database.py and/or processing.py scripts to change the data ingestion/processing processes according to your requirements. Also, update the main.py script and the test scripts as needed.
+
+#### DuckDB installation failed
+
+If the build fails due to the duckdb installation, download the duckdb binary file on your local machine and move it into the 
+project directory. <br>
+Copy it into the container and rebuild your image. Do this by editing Dockerfile with the code below.
+```Dockerfile
+  # Download and install DuckDB CLI
+  #RUN apt-get update && apt-get install -y wget unzip
+  #RUN wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip
+  #RUN unzip duckdb_cli-linux-amd64.zip
+  #RUN rm duckdb_cli-linux-amd64.zip
+  COPY ./duckdb ./duckdb
+  RUN chmod +x ./duckdb
+```
 
 #### Troubleshooting:
 

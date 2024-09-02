@@ -1,0 +1,11 @@
+polars
+duckdb
+sqlalchemy 
+duckdb-engine 
+pyarrow #for duckdb to polars
+pandas 
+Flask==3.0.0
+flasgger
+flask_cors==4.0.1
+pytest
+

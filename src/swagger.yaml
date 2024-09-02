@@ -1,0 +1,173 @@
+swagger: "2.0"
+info:
+  title: "Orders API"
+  description: "API for analyzing orders, customers, sellers, and products"
+  version: "1.0.0"
+host: "localhost:5000"
+schemes:
+  - "http"
+basePath: "/api"
+paths:
+  /load_table:
+    get:
+      summary: "Load data from the database"
+      parameters:
+        - name: "table_name"
+          in: "query"
+          type: "string"
+          required: true
+          description: "Name of the table to load data from"
+      responses:
+        200:
+          description: "Data loaded successfully"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+  
+  /customers:
+    get:
+      summary: "Get customer spending analysis"
+      responses:
+        200:
+          description: "Customer spending data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+  
+  /sellers:
+    get:
+      summary: "Get sales per seller analysis"
+      responses:
+        200:
+          description: "Seller sales data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /products:
+    get:
+      summary: "Get product sales analysis"
+      responses:
+        200:
+          description: "Product sales data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+  
+  /sales_analysis:
+    get:
+      summary: "Get overall sales analysis"
+      responses:
+        200:
+          description: "Overall sales analysis data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+  
+  /update_analytics:
+    post:
+      summary: "Update analytics tables in the database"
+      responses:
+        200:
+          description: "Analytics tables updated successfully"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /orders_by_date:
+    get:
+      summary: "Get orders within a specific date range"
+      parameters:
+        - name: "start_date"
+          in: "query"
+          type: "string"
+          required: true
+          description: "Start date (YYYY-MM-DD)"
+        - name: "end_date"
+          in: "query"
+          type: "string"
+          required: true
+          description: "End date (YYYY-MM-DD)"
+      responses:
+        200:
+          description: "Orders data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /top_customers:
+    get:
+      summary: "Get top N customers by total spending"
+      parameters:
+        - name: "n"
+          in: "query"
+          type: "integer"
+          required: false
+          description: "Number of top customers (default is 10)"
+      responses:
+        200:
+          description: "Top customers data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /orders_by_customer:
+    get:
+      summary: "Get orders for a specific customer"
+      parameters:
+        - name: "customer_id"
+          in: "query"
+          type: "string"
+          required: true
+          description: "Customer ID"
+      responses:
+        200:
+          description: "Orders data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /orders_by_seller:
+    get:
+      summary: "Get orders for a specific seller"
+      parameters:
+        - name: "seller_id"
+          in: "query"
+          type: "string"
+          required: true
+          description: "Seller ID"
+      responses:
+        200:
+          description: "Orders data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+  /orders_by_product:
+    get:
+      summary: "Get orders for a specific product"
+      parameters:
+        - name: "product_id"
+          in: "query"
+          type: "string"
+          required: true
+          description: "Product ID"
+      responses:
+        200:
+          description: "Orders data"
+          schema:
+            type: "object"
+        400:
+          description: "Invalid request"
+
+

@@ -1,0 +1,96 @@
+name: Brazillian Orders CI/CD Pipeline for Docker to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+
+    - name: Set up environment
+      run: |
+        echo "Setting up environment..."
+        python -m venv myenv
+        source myenv/bin/activate
+        pip install --upgrade -r requirements.txt
+ 
+      
+    - name: Run unit tests
+      run: |
+        source myenv/bin/activate
+        export PYTHONPATH=$PYTHONPATH:./src
+        echo "Running unit tests..."
+        pytest
+
+    - name: Build Docker image
+      run: |
+        echo "Building Docker image..."
+        docker build -t orders-analysis:latest .
+
+    - name: Login Dockerhub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+   
+    - name: remove existing image if it exists
+      run: docker image rm ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest || true
+
+    - name: Tag and push image to DockerHub
+      run: |
+        docker tag orders-analysis ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+
+  deploy-to-ec2:
+    name: Pull image from Dockerhub and deploy to EC2
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download data from Kaggle and deploy Docker container
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.EC2_HOST }}
+        USER: ${{ secrets.EC2_USER }}
+      run: |
+        echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+        ssh -o StrictHostKeyChecking=no -i private_key -vvv ${USER}@${HOST} '
+        echo "Connected to EC2 instance SSH"
+        
+        echo "Downloading and unzipping dataset..."
+        rm -rf /home/${USER}/data
+        mkdir -p /home/${USER}/data
+        kaggle datasets download -d olistbr/brazilian-ecommerce -p /home/${USER}/data
+        unzip /home/${USER}/data/brazilian-ecommerce.zip -d /home/${USER}/data
+        rm /home/${USER}/data/brazilian-ecommerce.zip
+        
+        echo "Pulling Docker image..."
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        sudo docker pull ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+        echo "Deploying Docker container..."
+        sudo docker run -d \
+        -p 5000:5000 \
+        -v /home/ec2-user/data:/orders_analysis/data \
+        --name orders-analysis-container \
+        ${{ secrets.DOCKER_USERNAME }}/orders-analysis:latest
+        '

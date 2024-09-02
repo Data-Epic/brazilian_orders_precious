@@ -1,0 +1,41 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python cache
+.pytest_cache/
+.cache
+*.mypy_cache*
+
+
+
+# Data files
+*.csv
+*.db
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore log files and temporary files
+*.log
+*.tmp
+
+# Ignore duckdb
+duckdb
+
+# ignore vscode settings
+*.vscode*
+
+
+
+
+
+
