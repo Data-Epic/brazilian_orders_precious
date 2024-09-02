@@ -139,3 +139,4 @@ def test_analyze_and_load(setup_db, test_data):
     assert len(result2) > 0
     assert len(result3) > 0
     assert len(result4) > 0
+

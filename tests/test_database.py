@@ -134,3 +134,4 @@ def test_process_data():
 
     assert final_orders_df.shape[0] == 2  # Check number of rows
     assert 'order_id' in final_orders_df.columns  # Check if 'order_id' is present
+

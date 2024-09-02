@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.10-slim
 
 WORKDIR /orders_analysis
 
@@ -32,3 +32,4 @@ EXPOSE 5000
 
 #  Set entrypoint to first run main.py then api.py
 ENTRYPOINT ["bash", "-c", "python ./src/main.py && python ./src/api.py"]
+

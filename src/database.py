@@ -2,6 +2,7 @@ import os
 import logging
 from sqlalchemy import inspect, create_engine, Sequence, Column, Integer, String, Float, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
+from typing import Type
 import polars as pl
 from datetime import datetime
 
@@ -10,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Define the base for ORM models
-Base = declarative_base()
+Base: Type[Base] = declarative_base()
 
 # ORM model for the 'orders' table
 class Order(Base):

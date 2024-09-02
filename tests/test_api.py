@@ -138,3 +138,4 @@ def test_orders_by_product(mock_load_data_from_db, mock_create_engine, client):
     response_json = response.get_json()
     assert len(response_json) == 1
     assert response_json[0]['product_id'] == 'prod_1'
+

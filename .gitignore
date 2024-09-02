@@ -10,9 +10,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Unit test  reports
+# Python cache
 .pytest_cache/
 .cache
+*.mypy_cache*
+
+
 
 # Data files
 *.csv
@@ -28,8 +31,11 @@ __pycache__/
 # Ignore duckdb
 duckdb
 
-# ignore 
-.vscode 
+# ignore vscode settings
+*.vscode*
+
+
+
 
 
 
